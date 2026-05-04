@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block layout %}
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a href="{% url 'home' %}" class="logo">DiaMonitor</a>
+
+        <button class="menu-toggle" id="menuToggle" type="button">☰</button>
+
+        <nav class="topnav" id="topNav">
+            <a href="{% url 'materials' %}">Справочные материалы</a>
+            <a href="{% url 'prediabetes_test' %}">Тест риска предиабета</a>
+            {% if request.user.is_authenticated %}
+            {% if request.user.profile_role == "doctor" %}
+            <a href="{% url 'doctor_dashboard' %}" class="nav-greeting">{% firstof request.user.display_name request.user.email %}</a>
+            {% elif request.user.profile_role == "patient" %}
+            <a href="{% url 'patient_dashboard' %}" class="nav-greeting">{% firstof request.user.display_name request.user.email %}</a>
+            {% else %}
+            <a href="{% url 'profile' %}" class="nav-greeting">{% firstof request.user.display_name request.user.email %}</a>
+            {% endif %}
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline">Выход</button>
+            </form>
+            {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline">Вход</a>
+            <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="container">
+        {% if messages %}
+        <div class="message-stack">
+            {% for message in messages %}
+            <div class="message {{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <p>Система мониторинга здоровья для людей с сахарным диабетом</p>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/layout.js' %}"></script>
+{% endblock %}

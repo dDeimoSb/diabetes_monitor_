@@ -1,0 +1,151 @@
+{% extends 'base_doctor_app.html' %}
+
+{% block title %}Кабинет врача{% endblock %}
+{% block dashboard_title %}Кабинет врача{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Главная</h1>
+    <p class="page-subtitle">Список пациентов, критические события и переходы к общим страницам после входа.</p>
+</section>
+
+<div class="summary-grid">
+    <article class="card summary-card">
+        <span class="summary-label">Пациентов</span>
+        <strong class="summary-value">{{ summary.patients_count }}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Непрочитанные уведомления</span>
+        <strong class="summary-value">{{ summary.unread_notifications }}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Критические события</span>
+        <strong class="summary-value">{{ summary.critical_events }}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Отправленные запросы на прикрепление</span>
+        <strong class="summary-value">{{ summary.pending_attachment_requests }}</strong>
+    </article>
+</div>
+
+<section class="card">
+    <h2 class="section-header">Фильтрация пациентов</h2>
+    <form method="get" class="filter-grid filter-grid-compact">
+        <div class="field-block">
+            <input type="text" name="q" id="q" value="{{ query }}" placeholder="ФИО или email">
+        </div>
+        <div class="form-actions filter-actions-bottom">
+            <button type="submit" class="btn btn-primary">Найти</button>
+            <a href="{% url 'doctor_dashboard' %}" class="btn btn-outline">Сбросить</a>
+        </div>
+    </form>
+</section>
+
+<section class="card">
+    <h2 class="section-header">Пациенты</h2>
+    {% if patients %}
+    <div class="pagination-summary">
+        Показано {{ patients_page.start_index }}-{{ patients_page.end_index }} из {{ patients_page.paginator.count }}
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Пациент</th>
+                    <th>Тип диабета</th>
+                    <th>Обновлено</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td><a href="{% url 'doctor_patient_analytics' patient.patient_id %}" class="text-link">{{ patient.user.display_name }}</a></td>
+                    <td>{{ patient.diabetes_type }}</td>
+                    <td>{{ patient.updated_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination-bar" aria-label="Навигация по списку пациентов">
+        {% if patients_page.has_previous %}
+        <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ patients_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+        {% endif %}
+
+        <span class="pagination-current">Страница {{ patients_page.number }} из {{ patients_page.paginator.num_pages }}</span>
+
+        {% if patients_page.has_next %}
+        <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ patients_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+        {% endif %}
+    </div>
+    {% else %}
+    <p>По текущему фильтру пациенты не найдены.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2 class="section-header">Последние критические события</h2>
+    {% if critical_events %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Пациент</th>
+                    <th>Событие</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in critical_events %}
+                <tr>
+                    <td>{{ event.entry.patient.user.display_name }}</td>
+                    <td>{{ event.get_event_type_display }}</td>
+                    <td>{{ event.get_status_display }}</td>
+                    <td>{{ event.detected_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Критических событий пока нет.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2 class="section-header">Прикрепление пациента</h2>
+    {% if recent_attachment_requests %}
+    <div class="attachment-list">
+        {% for attachment in recent_attachment_requests %}
+        <article class="attachment-card">
+            <div class="attachment-head">
+                <div class="attachment-title-group">
+                    <strong class="attachment-title">{{ attachment.patient.user.display_name }}</strong>
+                </div>
+                <span class="status-badge {{ attachment.status_badge_class }}">{{ attachment.get_status_display }}</span>
+            </div>
+            <div class="attachment-meta-grid">
+                <span><strong>Email:</strong> {{ attachment.patient.user.email }}</span>
+                <span><strong>Телефон:</strong> {{ attachment.patient.user.phone|default:"—" }}</span>
+                <span><strong>Тип диабета:</strong> {{ attachment.patient.diabetes_type }}</span>
+                <span class="attachment-meta-row-start"><strong>Создан:</strong> {{ attachment.created_at|date:"d.m.Y H:i" }}</span>
+                {% if attachment.resolved_at %}
+                <span><strong>Решение:</strong> {{ attachment.resolved_at|date:"d.m.Y H:i" }}</span>
+                {% else %}
+                <span><strong>Истекает:</strong> {{ attachment.expires_at|date:"d.m.Y H:i" }}</span>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Запросов на прикрепление пока нет.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends base_template %}
+
+{% block title %}Уведомления{% endblock %}
+{% block dashboard_title %}Уведомления{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Уведомления</h1>
+    <p class="page-subtitle">
+        Все системные уведомления и события, связанные с критическими значениями.
+    </p>
+</section>
+
+<div class="dashboard-grid dashboard-grid-half">
+    <article class="card summary-card">
+        <span class="summary-label">Всего</span>
+        <strong class="summary-value">{{ total_count }}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Непрочитанные</span>
+        <strong class="summary-value">{{ unread_count }}</strong>
+    </article>
+</div>
+
+{% if notification_items %}
+<div class="notification-list">
+    {% for item in notification_items %}
+    <article class="card notification-card {% if not item.notification.is_read %}notification-card-unread{% endif %}">
+        <div class="notification-card-header">
+            <div>
+                <h2>{{ item.notification.title }}</h2>
+                <p class="notification-meta">
+                    {{ item.notification.get_notification_type_display }} -
+                    {{ item.notification.created_at|date:"d.m.Y H:i" }}
+                </p>
+            </div>
+            <span class="status-badge {% if item.notification.is_read %}status-neutral{% else %}status-info{% endif %}">
+                {% if item.notification.is_read %}Прочитано{% else %}Не прочитано{% endif %}
+            </span>
+        </div>
+
+        <p>{{ item.notification.message }}</p>
+
+        {% if item.notification.critical_event %}
+        <p class="notification-meta">
+            Критическое событие:
+            {{ item.notification.critical_event.get_event_type_display }} -
+            {{ item.notification.critical_event.get_status_display }}
+        </p>
+        {% endif %}
+
+        <div class="table-actions">
+            {% if item.target_url %}
+            <a href="{{ item.target_url }}" class="btn btn-outline">Открыть связанный раздел</a>
+            {% endif %}
+            {% if not item.notification.is_read %}
+            <form method="post" action="{% url 'mark_notification_read' item.notification.notification_id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-primary">Отметить прочитанным</button>
+            </form>
+            {% endif %}
+        </div>
+    </article>
+    {% endfor %}
+</div>
+{% if notifications_page.paginator.num_pages > 1 %}
+<div class="pagination-summary">
+    Показано {{ notifications_page.start_index }}-{{ notifications_page.end_index }} из {{ notifications_page.paginator.count }}
+</div>
+<div class="pagination-bar" aria-label="Навигация по уведомлениям">
+    {% if notifications_page.has_previous %}
+    <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ notifications_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+    {% else %}
+    <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+    {% endif %}
+
+    <span class="pagination-current">Страница {{ notifications_page.number }} из {{ notifications_page.paginator.num_pages }}</span>
+
+    {% if notifications_page.has_next %}
+    <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ notifications_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+    {% else %}
+    <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<section class="card empty-state">
+    <h2>Уведомлений пока нет</h2>
+    <p>Когда в системе появятся новые сообщения или критические события, они будут отображаться здесь.</p>
+</section>
+{% endif %}
+{% endblock %}

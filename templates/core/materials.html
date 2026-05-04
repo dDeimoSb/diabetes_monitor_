@@ -1,0 +1,134 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}Справочные материалы{% endblock %}
+{% block dashboard_title %}Справочные материалы{% endblock %}
+
+{% block content %}
+<section class="card page-intro">
+    <p class="hero-eyebrow">Полезная информация</p>
+    <h1 class="page-title">Справочные материалы</h1>
+    <p class="page-subtitle page-intro-subtitle">
+        Краткий обзор ключевых тем о сахарном диабете, принципах самоконтроля, особенностях питания и 
+        профилактике осложнений. Этот раздел помогает сориентироваться, но не заменяет очную
+        консультацию врача и персональные рекомендации.
+    </p>
+</section>
+
+<div class="materials-layout">
+    <aside class="card materials-nav">
+        <h2>Разделы</h2>
+        <ul class="content-list">
+            {% for section in materials_sections %}
+            <li><a href="#{{ section.slug }}">{{ section.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </aside>
+
+    <div class="materials-content">
+        {% for section in materials_sections %}
+        <article class="card article-card" id="{{ section.slug }}">
+            <h2>{{ section.title }}</h2>
+            {{ section.intro|linebreaks }}
+            {% if section.items %}
+            <ul class="content-list">
+                {% for item in section.items %}
+                <li>
+                    {% if item.details %}
+                    {{ item.title }}
+                    <ul class="content-list content-sublist">
+                        {% for detail in item.details %}
+                        <li>{{ detail }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if item.notes %}
+                    <div class="content-note">
+                        {% for note in item.notes %}
+                        <p>{{ note }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    {{ item }}
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if section.tables %}
+            <div class="materials-table-stack">
+                {% for table in section.tables %}
+                <section class="materials-table-block">
+                    <div class="materials-table-header">
+                        <p class="materials-table-title">{{ table.title }}</p>
+                        <button type="button" class="btn btn-outline materials-table-toggle" data-table-toggle
+                            aria-expanded="false"
+                            aria-controls="materials-table-{{ section.slug }}-{{ forloop.counter }}">
+                            Показать таблицу
+                        </button>
+                    </div>
+                    <div class="materials-table-panel" id="materials-table-{{ section.slug }}-{{ forloop.counter }}"
+                        hidden>
+                        <div class="table-wrapper">
+                            <table class="materials-table">
+                                <thead>
+                                    <tr>
+                                        {% for header in table.headers %}
+                                        <th scope="col">{{ header }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in table.rows %}
+                                    <tr>
+                                        {% if row.group %}
+                                        <th colspan="{{ table.headers|length }}" class="materials-table-group">
+                                            {{ row.group|safe }}
+                                        </th>
+                                        {% elif row.note %}
+                                        <td colspan="{{ table.headers|length }}" class="materials-table-note">
+                                            {{ row.note|safe }}
+                                        </td>
+                                        {% else %}
+                                        {% for cell in row.cells %}
+                                        <td>{{ cell|safe }}</td>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if table.notes %}
+                        <div class="content-note materials-table-notes">
+                            {% for note in table.notes %}
+                            <p>{{ note }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+
+        <section class="card article-card">
+            <h2>Официальные источники</h2>
+            <p>Для наполнения раздела использованы официальные источники клинических рекомендаций Минздрава РФ. При
+                необходимости вы можете открыть исходные документы:</p>
+            <ul class="content-list">
+                {% for source in materials_sources %}
+                <li><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer" class="source-link">{{ source.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/materials_tables.js' %}"></script>
+{% endblock %}

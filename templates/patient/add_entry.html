@@ -1,0 +1,229 @@
+{% extends 'base_patient_app.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Добавление записи" }}{% endblock %}
+{% block dashboard_title %}{{ page_title|default:"Добавление записи" }}{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">{{ page_title|default:"Добавление записи самоконтроля" }}</h1>
+    <p class="page-subtitle">{{ page_subtitle|default:"Форма внесения данных дневника самоконтроля." }}</p>
+</section>
+
+<section class="card">
+    <form method="post" id="monitoringEntryForm" class="public-form-grid public-form-grid-single" data-auto-datetime="{% if is_edit %}false{% else %}true{% endif %}">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="public-form-grid">
+            <div class="field-block">
+                <label for="{{ form.entry_type.id_for_label }}">Тип записи <span aria-hidden="true">*</span></label>
+                {{ form.entry_type }}
+                {% for error in form.entry_type.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.entry_datetime.id_for_label }}">Дата и время <span aria-hidden="true">*</span></label>
+                {{ form.entry_datetime }}
+                {% for error in form.entry_datetime.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="public-form-grid" data-entry-fields="{{ entry_type_values.glucose }}" {% if active_entry_type != entry_type_values.glucose %}hidden{% endif %}>
+            <div class="field-block">
+                <label for="{{ form.glucose_value_mmol.id_for_label }}">Уровень глюкозы, ммоль/л <span aria-hidden="true">*</span></label>
+                {{ form.glucose_value_mmol }}
+                {% for error in form.glucose_value_mmol.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.glucose_context.id_for_label }}">Контекст измерения</label>
+                {{ form.glucose_context }}
+                {% for error in form.glucose_context.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="public-form-grid" data-entry-fields="{{ entry_type_values.therapy }}" {% if active_entry_type != entry_type_values.therapy %}hidden{% endif %}>
+            <div class="field-block">
+                <label for="{{ form.medication_name.id_for_label }}">Название препарата <span aria-hidden="true">*</span></label>
+                {{ form.medication_name }}
+                {% for error in form.medication_name.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.medication_category.id_for_label }}">Категория препарата</label>
+                {{ form.medication_category }}
+                {% for error in form.medication_category.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.dose_amount.id_for_label }}">Доза</label>
+                {{ form.dose_amount }}
+                {% for error in form.dose_amount.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.dose_unit.id_for_label }}">Единица дозы</label>
+                {{ form.dose_unit }}
+                {% for error in form.dose_unit.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.administration_method.id_for_label }}">Способ введения</label>
+                {{ form.administration_method }}
+                {% for error in form.administration_method.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="public-form-grid" data-entry-fields="{{ entry_type_values.meal }}" {% if active_entry_type != entry_type_values.meal %}hidden{% endif %}>
+            <div class="field-block">
+                <label for="{{ form.meal_type.id_for_label }}">Прием пищи</label>
+                {{ form.meal_type }}
+                {% for error in form.meal_type.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.carbohydrates_g.id_for_label }}">Углеводы, г</label>
+                {{ form.carbohydrates_g }}
+                {% for error in form.carbohydrates_g.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.meal_description.id_for_label }}">Описание питания</label>
+                {{ form.meal_description }}
+                {% for error in form.meal_description.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.bread_units.id_for_label }}">Хлебные единицы</label>
+                {{ form.bread_units }}
+                {% for error in form.bread_units.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <p class="field-hint-under-box">Заполните хотя бы одно поле.</p>
+        </div>
+
+        <div class="public-form-grid" data-entry-fields="{{ entry_type_values.activity }}" {% if active_entry_type != entry_type_values.activity %}hidden{% endif %}>
+            <div class="field-block">
+                <label for="{{ form.activity_type.id_for_label }}">Вид активности <span aria-hidden="true">*</span></label>
+                {{ form.activity_type }}
+                {% for error in form.activity_type.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.activity_duration_min.id_for_label }}">Длительность, мин</label>
+                {{ form.activity_duration_min }}
+                {% for error in form.activity_duration_min.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.activity_intensity.id_for_label }}">Интенсивность</label>
+                {{ form.activity_intensity }}
+                {% for error in form.activity_intensity.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="public-form-grid" data-entry-fields="{{ entry_type_values.wellbeing }}" {% if active_entry_type != entry_type_values.wellbeing %}hidden{% endif %}>
+            <div class="field-block">
+                <label for="{{ form.wellbeing_type.id_for_label }}">Тип самочувствия <span aria-hidden="true">*</span></label>
+                {{ form.wellbeing_type }}
+                {% for error in form.wellbeing_type.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.severity.id_for_label }}">Выраженность</label>
+                {{ form.severity }}
+                {% for error in form.severity.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.symptom_description.id_for_label }}">Описание симптомов</label>
+                {{ form.symptom_description }}
+                {% for error in form.symptom_description.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="public-form-grid" data-entry-fields="{{ entry_type_values.vital_signs }}" {% if active_entry_type != entry_type_values.vital_signs %}hidden{% endif %}>
+            <div class="field-block">
+                <label for="{{ form.weight_kg.id_for_label }}">Вес, кг</label>
+                {{ form.weight_kg }}
+                {% for error in form.weight_kg.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.pulse_bpm.id_for_label }}">Пульс, уд/мин</label>
+                {{ form.pulse_bpm }}
+                {% for error in form.pulse_bpm.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.systolic_bp.id_for_label }}">Систолическое давление</label>
+                {{ form.systolic_bp }}
+                {% for error in form.systolic_bp.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.diastolic_bp.id_for_label }}">Диастолическое давление</label>
+                {{ form.diastolic_bp }}
+                {% for error in form.diastolic_bp.errors %}
+                <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <p class="field-hint-under-box">Заполните хотя бы одно поле.</p>
+        </div>
+
+        <div class="field-block">
+            <label for="{{ form.comment.id_for_label }}">Комментарий</label>
+            {{ form.comment }}
+            {% for error in form.comment.errors %}
+            <span class="field-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{{ submit_label|default:"Сохранить запись" }}</button>
+            <a href="{% url 'patient_history' %}" class="btn btn-outline">История записей</a>
+            {% if is_edit and entry %}
+            <a href="{% url 'patient_delete_entry' entry.entry_id %}" class="btn btn-outline">Удалить запись</a>
+            {% endif %}
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/monitoring_entry_form.js' %}"></script>
+{% endblock %}

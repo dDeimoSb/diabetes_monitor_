@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+    <aside class="sidebar" id="sidebar" aria-hidden="true" inert>
+        <div class="sidebar-header">
+            <a href="{% url 'doctor_dashboard' %}" class="logo">DiaMonitor</a>
+            <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Закрыть навигацию">&#10005;</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{% url 'doctor_dashboard' %}">Главная</a>
+            <a href="{% url 'doctor_attach_patient' %}">Прикрепить пациента</a>
+            <a href="{% url 'doctor_critical_events' %}">Критические события</a>
+            <a href="{% url 'notifications' %}">Уведомления</a>
+            <a href="{% url 'export' %}">Экспорт данных</a>
+            <a href="{% url 'profile' %}">Профиль</a>
+            <form method="post" action="{% url 'logout' %}" class="logout-form sidebar-logout-form">
+                {% csrf_token %}
+                <button type="submit" class="sidebar-logout-button">Выход</button>
+            </form>
+        </nav>
+    </aside>
+
+    <div class="dashboard-main">
+        <header class="dashboard-topbar">
+            <button class="sidebar-open" id="sidebarOpen" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Открыть навигацию">&#9776;</button>
+            <div class="dashboard-title">{% block dashboard_title %}Кабинет врача{% endblock %}</div>
+        </header>
+
+        <main class="dashboard-content">
+            {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}
+                <div class="message {{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/layout.js' %}"></script>
+{% endblock %}

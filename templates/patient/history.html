@@ -1,0 +1,100 @@
+{% extends 'base_patient_app.html' %}
+
+{% block title %}История записей{% endblock %}
+{% block dashboard_title %}История записей{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">История записей</h1>
+    <p class="page-subtitle">Фильтрация по периоду, типу записи или комментарию.</p>
+</section>
+
+<section class="card">
+    <form method="get" class="filter-grid">
+        <div class="field-block">
+            <label for="start_date">Дата начала</label>
+            <input type="date" name="start_date" id="start_date" value="{{ filters.start_date }}">
+        </div>
+        <div class="field-block">
+            <label for="end_date">Дата окончания</label>
+            <input type="date" name="end_date" id="end_date" value="{{ filters.end_date }}">
+        </div>
+        <div class="field-block">
+            <label for="entry_type">Тип записи</label>
+            <select name="entry_type" id="entry_type">
+                <option value="">Все типы</option>
+                {% for value, label in entry_type_choices %}
+                <option value="{{ value }}" {% if filters.entry_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field-block">
+            <label for="q">Поиск</label>
+            <input type="text" name="q" id="q" value="{{ filters.q }}" placeholder="Комментарий">
+        </div>
+        {% if filters.entry_id %}
+        <input type="hidden" name="entry_id" value="{{ filters.entry_id }}">
+        {% endif %}
+        <div class="form-actions filter-actions-bottom">
+            <button type="submit" class="btn btn-primary">Применить</button>
+            <a href="{% url 'patient_history' %}" class="btn btn-outline">Сбросить</a>
+        </div>
+    </form>
+</section>
+
+<section class="card">
+    {% if entries %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Тип</th>
+                    <th>Детали</th>
+                    <th>Комментарий</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in entries %}
+                <tr class="{% if item.highlighted %}table-row-highlight{% endif %}">
+                    <td>{{ item.entry_datetime|date:"d.m.Y H:i" }}</td>
+                    <td>{{ item.entry_type }}</td>
+                    <td>{{ item.detail }}</td>
+                    <td>{{ item.comment|default:"—" }}</td>
+                    <td>
+                        <div class="table-actions table-actions-inline">
+                            <a href="{% url 'patient_edit_entry' item.id %}" class="btn btn-outline">Редактировать</a>
+                            <a href="{% url 'patient_delete_entry' item.id %}" class="btn btn-outline btn-danger-soft">Удалить</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if entries_page.paginator.num_pages > 1 %}
+    <div class="pagination-summary">
+        Показано {{ entries_page.start_index }}-{{ entries_page.end_index }} из {{ entries_page.paginator.count }}
+    </div>
+    <div class="pagination-bar" aria-label="Навигация по истории записей">
+        {% if entries_page.has_previous %}
+        <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ entries_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+        {% endif %}
+
+        <span class="pagination-current">Страница {{ entries_page.number }} из {{ entries_page.paginator.num_pages }}</span>
+
+        {% if entries_page.has_next %}
+        <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ entries_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p>Записи по выбранным фильтрам не найдены.</p>
+    {% endif %}
+</section>
+{% endblock %}

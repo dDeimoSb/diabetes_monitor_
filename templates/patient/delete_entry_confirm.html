@@ -1,0 +1,40 @@
+{% extends 'base_patient_app.html' %}
+
+{% block title %}Удаление записи{% endblock %}
+{% block dashboard_title %}Удаление записи{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Удаление записи</h1>
+    <p class="page-subtitle">Проверьте выбранную запись перед удалением.</p>
+</section>
+
+<section class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Тип</th>
+                    <th>Детали</th>
+                    <th>Комментарий</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ entry.entry_datetime|date:"d.m.Y H:i" }}</td>
+                    <td>{{ entry.entry_type }}</td>
+                    <td>{{ entry.detail }}</td>
+                    <td>{{ entry.comment|default:"—" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <form method="post" class="form-actions table-actions">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Удалить запись</button>
+        <a href="{% url 'patient_history' %}" class="btn btn-outline">Отмена</a>
+    </form>
+</section>
+{% endblock %}

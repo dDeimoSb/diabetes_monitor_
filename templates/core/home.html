@@ -1,0 +1,58 @@
+{% extends 'base_public.html' %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="card home-hero">
+    <div class="home-hero-intro">
+        <h1 class="page-title home-hero-title">Система мониторинга здоровья для людей с сахарным диабетом</h1>
+        <p class="page-subtitle home-hero-subtitle">
+            Добро пожаловать в веб-приложение для ввода, хранения и анализа показателей самоконтроля.
+            Здесь можно просматривать справочные материалы, оценить риск предиабета и создать учётную запись для ведения
+            дневника.
+        </p>
+
+        <div class="home-actions">
+            {% if request.user.is_authenticated %}
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline">Выход</button>
+            </form>
+            {% else %}
+            <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
+            <a href="{% url 'login' %}" class="btn btn-outline">Вход</a>
+            {% endif %}
+            <a href="{% url 'prediabetes_test' %}" class="btn btn-outline">Тест риска предиабета</a>
+            <a href="{% url 'materials' %}" class="btn btn-outline">Справочные материалы</a>
+        </div>
+    </div>
+
+    <div class="home-highlights">
+        {% for feature in feature_cards %}
+        <article class="public-card public-card-compact">
+            <h2>{{ feature.title }}</h2>
+            <p>{{ feature.description }}</p>
+            <a href="{% url feature.url_name %}" class="text-link">{{ feature.link_text }}</a>
+        </article>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="public-grid">
+    <article class="card public-card">
+        <h2>Что доступно без авторизации?</h2>
+        <p>Можно ознакомиться со справочной информацией, пройти анкету риска
+            предиабета и только потом решить, нужна ли вам регистрация.</p>
+    </article>
+    <article class="card public-card">
+        <h2>Для чего нужен самоконтроль?</h2>
+        <p>Регулярная фиксация показателей помогает поддержать необходимый уровень глюкозы,
+            предотвращать ухудшения самочувствия, корректировать терапию и обсуждать результаты с врачом.</p>
+    </article>
+    <article class="card public-card">
+        <h2>Как использовать сервис?</h2>
+        <p>Сначала можно изучить с материалы и пройти тест. Если вы уже готовы работать с данными
+            самоконтроля, зарегистрируйте учётную запись.</p>
+    </article>
+</div>
+{% endblock %}

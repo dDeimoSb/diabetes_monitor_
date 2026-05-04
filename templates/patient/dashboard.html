@@ -1,0 +1,145 @@
+{% extends 'base_patient_app.html' %}
+
+{% block title %}Кабинет пациента{% endblock %}
+{% block dashboard_title %}Кабинет пациента{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Главная</h1>
+    <p class="page-subtitle">Краткая сводка.</p>
+</section>
+
+<div class="summary-grid-patient">
+    <article class="card summary-card">
+        <span class="summary-label">Записей сегодня</span>
+        <strong class="summary-value">{{ summary.entries_today }}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Непрочитанные уведомления</span>
+        <strong class="summary-value">{{ summary.unread_notifications }}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Критические события</span>
+        <strong class="summary-value">{{ summary.open_events }}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Последняя глюкоза</span>
+        <strong class="summary-value">{% if summary.last_glucose %}{{ summary.last_glucose }}{% else %}—{% endif %}</strong>
+    </article>
+    <article class="card summary-card">
+        <span class="summary-label">Запросы на прикрепление</span>
+        <strong class="summary-value">{{ summary.pending_attachment_requests }}</strong>
+    </article>
+</div>
+
+<section class="card">
+    <h2 class="section-header">Прикрепление к врачу</h2>
+    {% if pending_attachment_requests %}
+    <div class="attachment-list">
+        {% for attachment in pending_attachment_requests %}
+        <article class="attachment-card">
+            <div class="attachment-head">
+                <div class="attachment-title-group">
+                    <strong class="attachment-title">{{ attachment.doctor.user.display_name }}</strong>
+                </div>
+                <span class="status-badge {{ attachment.status_badge_class }}">{{ attachment.get_status_display }}</span>
+            </div>
+            <div class="attachment-meta-grid">
+                <span><strong>Специальность:</strong> {{ attachment.doctor.specialty }}</span>
+                <span><strong>Email:</strong> {{ attachment.doctor.user.email }}</span>
+                <span><strong>Телефон:</strong> {{ attachment.doctor.user.phone|default:"—" }}</span>
+                <span class="attachment-meta-row-start"><strong>Создан:</strong> {{ attachment.created_at|date:"d.m.Y H:i" }}</span>
+                {% if attachment.resolved_at %}
+                <span><strong>Решение:</strong> {{ attachment.resolved_at|date:"d.m.Y H:i" }}</span>
+                {% else %}
+                <span><strong>Истекает:</strong> {{ attachment.expires_at|date:"d.m.Y H:i" }}</span>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% elif confirmed_attachments %}
+    <div class="attachment-list">
+        {% for attachment in confirmed_attachments %}
+        <article class="attachment-card">
+            <div class="attachment-head">
+                <div class="attachment-title-group">
+                    <strong class="attachment-title">{{ attachment.doctor.user.display_name }}</strong>
+                </div>
+                <span class="status-badge {{ attachment.status_badge_class }}">{{ attachment.get_status_display }}</span>
+            </div>
+            <div class="attachment-meta-grid">
+                <span><strong>Специальность:</strong> {{ attachment.doctor.specialty }}</span>
+                <span><strong>Email:</strong> {{ attachment.doctor.user.email }}</span>
+                <span><strong>Телефон:</strong> {{ attachment.doctor.user.phone|default:"—" }}</span>
+                <span class="attachment-meta-row-start"><strong>Создан:</strong> {{ attachment.created_at|date:"d.m.Y H:i" }}</span>
+                {% if attachment.resolved_at %}
+                <span><strong>Решение:</strong> {{ attachment.resolved_at|date:"d.m.Y H:i" }}</span>
+                {% else %}
+                <span><strong>Истекает:</strong> {{ attachment.expires_at|date:"d.m.Y H:i" }}</span>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Запросов на прикрепление и подтвержденных врачей пока нет.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2 class="section-header">Предупреждения</h2>
+    {% if open_events %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Событие</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in open_events %}
+                <tr>
+                    <td>{{ event.get_event_type_display }}</td>
+                    <td>{{ event.get_status_display }}</td>
+                    <td>{{ event.detected_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Открытых критических событий нет.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2 class="section-header">Последние записи</h2>
+    {% if recent_entries %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Тип</th>
+                    <th>Детали</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in recent_entries %}
+                <tr>
+                    <td>{{ item.entry_datetime|date:"d.m.Y H:i" }}</td>
+                    <td>{{ item.entry_type }}</td>
+                    <td>{{ item.detail }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Записей пока нет.</p>
+    {% endif %}
+</section>
+{% endblock %}

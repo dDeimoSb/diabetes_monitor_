@@ -1,0 +1,24 @@
+{% extends 'base_patient_app.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block dashboard_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">{{ page_title }}</h1>
+    <p class="page-subtitle">{{ page_subtitle }}</p>
+</section>
+
+{% if stats %}
+<section class="card">
+    <div class="summary-grid">
+        {% for item in stats %}
+        <article class="card summary-card">
+            <span class="summary-label">{{ item.label }}</span>
+            <strong class="summary-value">{{ item.count }}</strong>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

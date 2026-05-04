@@ -1,0 +1,99 @@
+{% extends base_template %}
+
+{% block title %}Экспорт данных{% endblock %}
+{% block dashboard_title %}Экспорт данных{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Экспорт данных</h1>
+    <p class="page-subtitle">
+        Выгрузка истории самоконтроля за выбранный период в CSV или XLSX файл.
+    </p>
+</section>
+
+<section class="card">
+    <form method="post" id="exportForm">
+        {% csrf_token %}
+        {% if is_doctor %}
+        <input type="hidden" name="patient_query" value="{{ patient_query }}">
+        {% endif %}
+
+        <div class="filter-grid export-filter-grid">
+            <div class="field-block">
+                <label for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+                {{ form.start_date }}
+                {% for error in form.start_date.errors %}
+                <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+                {{ form.end_date }}
+                {% for error in form.end_date.errors %}
+                <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="field-block">
+                <label for="{{ form.export_format.id_for_label }}">{{ form.export_format.label }}</label>
+                {{ form.export_format }}
+                {% for error in form.export_format.errors %}
+                <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-actions export-form-actions">
+                <button type="submit" class="btn btn-primary">Сформировать файл</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+{% if is_doctor %}
+<section class="card">
+    <h2 class="section-header">Поиск пациентов</h2>
+    <form method="get" class="public-form-grid public-form-grid-single">
+        <div class="field-block">
+            <input type="text" name="patient_query" value="{{ patient_query }}" placeholder="ФИО или email">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Найти пациентов</button>
+            <a href="{% url 'export' %}" class="btn btn-outline">Сбросить</a>
+        </div>
+    </form>
+
+    {% if patient_search_results is not None %}
+    <div class="section-header section-header-spaced">
+        <h3>Результаты поиска</h3>
+        <span class="notification-meta">Найдено: {{ patient_search_results|length }}</span>
+    </div>
+    {% if patient_search_results %}
+    <div class="attachment-list">
+        {% for patient in patient_search_results %}
+        <label class="attachment-card attachment-card-selectable">
+            <span class="attachment-select">
+                <input type="radio" form="exportForm" name="patient_id" value="{{ patient.patient_id }}" {% if form.data.patient_id == patient.patient_id|stringformat:"s" %}checked{% elif not form.is_bound and forloop.first %}checked{% endif %}>
+            </span>
+            <span class="attachment-content">
+                <span class="attachment-head">
+                    <span class="attachment-title">{{ patient.user.display_name }}</span>
+                </span>
+                <span class="attachment-meta-grid">
+                    <span><strong>Email:</strong> {{ patient.user.email }}</span>
+                    <span><strong>Год рождения:</strong> {% if patient.user.birth_date %}{{ patient.user.birth_date|date:"Y" }}{% else %}—{% endif %}</span>
+                    <span><strong>Телефон:</strong> {{ patient.user.phone|default:"—" }}</span>
+                    <span><strong>Тип диабета:</strong> {{ patient.diabetes_type }}</span>
+                </span>
+            </span>
+        </label>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>По вашему запросу пациенты не найдены.</p>
+    {% endif %}
+    {% endif %}
+
+    {% for error in form.patient_id.errors %}
+    <p class="field-error">{{ error }}</p>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

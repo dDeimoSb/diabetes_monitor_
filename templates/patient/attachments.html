@@ -1,0 +1,88 @@
+{% extends 'base_patient_app.html' %}
+
+{% block title %}Прикрепление к врачу{% endblock %}
+{% block dashboard_title %}Прикрепление к врачу{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Прикрепление к врачу</h1>
+    <p class="page-subtitle">Здесь можно просматривать входящие запросы от врачей, подтверждать или отклонять их и просматривать историю запросов.</p>
+</section>
+
+<section class="card">
+    <h2 class="section-header">Входящие запросы</h2>
+    {% if incoming_requests %}
+    <div class="attachment-list">
+        {% for attachment in incoming_requests %}
+        <article class="attachment-card">
+            <div class="attachment-head">
+                <div class="attachment-content">
+                    <div class="attachment-title-group">
+                        <strong class="attachment-title">{{ attachment.doctor.user.display_name }}</strong>
+                    </div>
+                    <div class="attachment-meta-grid">
+                        <span><strong>Специальность:</strong> {{ attachment.doctor.specialty }}</span>
+                        <span><strong>Email:</strong> {{ attachment.doctor.user.email }}</span>
+                        <span><strong>Телефон:</strong> {{ attachment.doctor.user.phone|default:"—" }}</span>
+                        <span class="attachment-meta-row-start"><strong>Создан:</strong> {{ attachment.created_at|date:"d.m.Y H:i" }}</span>
+                        {% if attachment.resolved_at %}
+                        <span><strong>Решение:</strong> {{ attachment.resolved_at|date:"d.m.Y H:i" }}</span>
+                        {% else %}
+                        <span><strong>Истекает:</strong> {{ attachment.expires_at|date:"d.m.Y H:i" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="attachment-actions attachment-actions-inline attachment-actions-stack">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="attachment_id" value="{{ attachment.attachment_id }}">
+                        <input type="hidden" name="action" value="confirm">
+                        <button type="submit" class="btn btn-primary">Подтвердить</button>
+                    </form>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="attachment_id" value="{{ attachment.attachment_id }}">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn btn-outline">Отклонить</button>
+                    </form>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Новых запросов на прикрепление нет.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2 class="section-header">История запросов</h2>
+    {% if request_history %}
+    <div class="attachment-list">
+        {% for attachment in request_history %}
+        <article class="attachment-card">
+            <div class="attachment-head">
+                <div class="attachment-title-group">
+                    <strong class="attachment-title">{{ attachment.doctor.user.display_name }}</strong>
+                </div>
+                <span class="status-badge {{ attachment.status_badge_class }}">{{ attachment.get_status_display }}</span>
+            </div>
+            <div class="attachment-meta-grid">
+                <span><strong>Специальность:</strong> {{ attachment.doctor.specialty }}</span>
+                <span><strong>Email:</strong> {{ attachment.doctor.user.email }}</span>
+                <span><strong>Телефон:</strong> {{ attachment.doctor.user.phone|default:"—" }}</span>
+                <span class="attachment-meta-row-start"><strong>Создан:</strong> {{ attachment.created_at|date:"d.m.Y H:i" }}</span>
+                {% if attachment.resolved_at %}
+                <span><strong>Решение:</strong> {{ attachment.resolved_at|date:"d.m.Y H:i" }}</span>
+                {% else %}
+                <span><strong>Истекает:</strong> {{ attachment.expires_at|date:"d.m.Y H:i" }}</span>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>История запросов пока пуста.</p>
+    {% endif %}
+</section>
+{% endblock %}

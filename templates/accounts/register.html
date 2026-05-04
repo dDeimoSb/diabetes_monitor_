@@ -1,0 +1,89 @@
+{% extends 'base_public.html' %}
+{% load static %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="auth-shell auth-shell-wide">
+    <section class="card form-panel">
+        <div class="form-panel-header">
+            <p class="hero-eyebrow">Создание учётной записи</p>
+            <h1 class="page-title">Регистрация</h1>
+            <p>Заполните основные данные.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="form-errors">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="public-form-grid">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="field-block">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {% if field.field.widget.input_type == "password" %}
+                        <div class="password-input-wrap">
+                            {{ field }}
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                data-password-toggle
+                                data-show-label="Показать пароль"
+                                data-hide-label="Скрыть пароль"
+                                aria-label="Показать пароль"
+                                aria-pressed="false"
+                            >
+                                <span class="password-toggle-icon password-toggle-icon-show" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M1.5 12 s 3.8 -6.5 10.5 -6.5 S 22.5 12 22.5 12 s -3.8 6.5 -10.5 6.5 S 1.5 12 1.5 12 Z" />
+                                        <circle cx="12" cy="12" r="3.5" />
+                                    </svg>
+                                </span>
+                                <span class="password-toggle-icon password-toggle-icon-hide" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M3 3 l18 18" />
+                                        <path d="M21 3 l-18 18" />
+                                        <path d="M1.5 12 s 3.8 -6.5 10.5 -6.5 S 22.5 12 22.5 12 s -3.8 6.5 -10.5 6.5 S 1.5 12 1.5 12 Z" />
+                                        <circle cx="12" cy="12" r="4.35" fill="currentColor" stroke="none" />
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="field-hint-under-box">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Создать аккаунт</button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="card">
+        <h2>Что входит в регистрацию?</h2>
+        <ul class="content-list">
+            <li>Создаётся учётная запись пользователя с ролью пациента.</li>
+            <li>Сохраняются базовые персональные данные и тип диабета.</li>
+            <li>После регистрации можно сразу выполнить вход и продолжить работу в системе.</li>
+        </ul>
+        <a href="{% url 'login' %}" class="btn btn-outline btn-space-top">У меня уже есть аккаунт</a>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/password_toggle.js' %}"></script>
+{% endblock %}

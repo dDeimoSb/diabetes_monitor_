@@ -1,0 +1,192 @@
+{% extends 'base_doctor_app.html' %}
+
+{% block title %}Прикрепление пациента{% endblock %}
+{% block dashboard_title %}Прикрепление пациента{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Прикрепление пациента</h1>
+    <p class="page-subtitle">Здесь вы можете найти пациента, затем выбирать его из списка и отправить запрос на прикрепление. Запрос действует {{ request_lifetime_days }} дней.</p>
+</section>
+
+<section class="card">
+    <h2 class="section-header">Найти пациента</h2>
+    <form method="get" class="public-form-grid public-form-grid-single">
+        <div class="field-block">
+            {{ search_form.patient_query }}
+            {% for error in search_form.patient_query.errors %}
+            <p class="field-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Найти пациентов</button>
+            <a href="{% url 'doctor_attach_patient' %}" class="btn btn-outline">Сбросить</a>
+        </div>
+    </form>
+</section>
+
+{% if search_results is not None %}
+<section class="card">
+    <div class="section-header">
+        <h2>Результаты поиска</h2>
+        {% if search_results_page %}
+        <span class="notification-meta">Найдено: {{ search_results_page.paginator.count }}</span>
+        {% else %}
+        <span class="notification-meta">Найдено: {{ search_results|length }}</span>
+        {% endif %}
+    </div>
+    {% if search_results %}
+    <div class="pagination-summary">
+        Показано {{ search_results_page.start_index }}-{{ search_results_page.end_index }} из {{ search_results_page.paginator.count }}
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_request">
+        <input type="hidden" name="search_query" value="{{ search_query }}">
+        <input type="hidden" name="search_page" value="{{ search_results_page.number }}">
+        <div class="attachment-list">
+            {% for item in search_results %}
+            <label class="attachment-card attachment-card-selectable {% if not item.can_request %}attachment-card-disabled{% endif %}">
+                <span class="attachment-select">
+                    <input type="radio" name="patient_id" value="{{ item.patient.patient_id }}" {% if not item.can_request %}disabled{% endif %} {% if create_form.data.patient_id == item.patient.patient_id|stringformat:"s" %}checked{% elif not create_form.is_bound and item.can_request and forloop.first %}checked{% endif %}>
+                </span>
+                <span class="attachment-content">
+                    <span class="attachment-head">
+                        <span class="attachment-title-group">
+                            <span class="attachment-title">{{ item.patient.user.display_name }}</span>
+                        </span>
+                        {% if item.attachment %}
+                        <span class="status-badge {{ item.attachment.status_badge_class }}">{{ item.attachment.get_status_display }}</span>
+                        {% endif %}
+                    </span>
+                    <span class="attachment-meta-grid">
+                        <span><strong>Email:</strong> {{ item.patient.user.email }}</span>
+                        <span><strong>Телефон:</strong> {{ item.patient.user.phone|default:"—" }}</span>
+                        <span><strong>Год рождения:</strong> {% if item.patient.user.birth_date %}{{ item.patient.user.birth_date|date:"Y" }}{% else %}—{% endif %}</span>
+                        <span><strong>Тип диабета:</strong> {{ item.patient.diabetes_type }}</span>
+                        {% if item.attachment %}
+                        <span class="attachment-meta-row-start"><strong>Создан:</strong> {{ item.attachment.created_at|date:"d.m.Y H:i" }}</span>
+                        {% if item.attachment.resolved_at %}
+                        <span><strong>Решение:</strong> {{ item.attachment.resolved_at|date:"d.m.Y H:i" }}</span>
+                        {% else %}
+                        <span><strong>Истекает:</strong> {{ item.attachment.expires_at|date:"d.m.Y H:i" }}</span>
+                        {% endif %}
+                        {% endif %}
+                    </span>
+                    {% if item.attachment %}
+                    <span class="attachment-note">
+                        {% if item.attachment.status == "Подтвержденный" %}
+                        Пациент уже прикреплён к вам, новый запрос недоступен.
+                        {% else %}
+                        По этой паре уже есть активный запрос на прикрепление.
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+        {% for error in create_form.patient_id.errors %}
+        <p class="field-error">{{ error }}</p>
+        {% endfor %}
+        {% if create_form.non_field_errors %}
+        <div class="form-errors">
+            {% for error in create_form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="form-actions attachment-actions-bar" aria-label="Действия и навигация по результатам поиска пациентов">
+            <button type="submit" class="btn btn-primary">Отправить запрос</button>
+
+            <div class="attachment-pagination-controls">
+                {% if search_results_page.has_previous %}
+                <a href="?patient_query={{ search_query|urlencode }}&amp;page={{ search_results_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+                {% else %}
+                <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+                {% endif %}
+
+                <span class="pagination-current">Страница {{ search_results_page.number }} из {{ search_results_page.paginator.num_pages }}</span>
+
+                {% if search_results_page.has_next %}
+                <a href="?patient_query={{ search_query|urlencode }}&amp;page={{ search_results_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+                {% else %}
+                <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <p>По вашему запросу пациенты не найдены.</p>
+    {% endif %}
+</section>
+{% endif %}
+
+<section class="card">
+    <div class="section-header">
+        <h2>Отправленные запросы</h2>
+        <span class="notification-meta">Всего: {{ sent_requests_page.paginator.count }}</span>
+    </div>
+    {% if sent_requests %}
+    <div class="pagination-summary">
+        Показано {{ sent_requests_page.start_index }}-{{ sent_requests_page.end_index }} из {{ sent_requests_page.paginator.count }}
+    </div>
+    <div class="attachment-list">
+        {% for attachment in sent_requests %}
+        <article class="attachment-card">
+            <div class="attachment-head">
+                <div class="attachment-title-group">
+                    {% if attachment.status_badge_class == "status-success" %}
+                    <a href="{% url 'doctor_patient_analytics' attachment.patient.patient_id %}" class="attachment-title text-link">{{ attachment.patient.user.display_name }}</a>
+                    {% else %}
+                    <strong class="attachment-title">{{ attachment.patient.user.display_name }}</strong>
+                    {% endif %}
+                </div>
+                <div class="attachment-actions attachment-actions-inline">
+                    <span class="status-badge {{ attachment.status_badge_class }}">{{ attachment.get_status_display }}</span>
+                    {% if attachment.is_pending %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cancel_request">
+                        <input type="hidden" name="attachment_id" value="{{ attachment.attachment_id }}">
+                        <button type="submit" class="btn btn-outline">Отменить</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="attachment-meta-grid">
+                <span><strong>Email:</strong> {{ attachment.patient.user.email }}</span>
+                <span><strong>Телефон:</strong> {{ attachment.patient.user.phone|default:"—" }}</span>
+                <span><strong>Тип диабета:</strong> {{ attachment.patient.diabetes_type }}</span>
+                <span class="attachment-meta-row-start"><strong>Создан:</strong> {{ attachment.created_at|date:"d.m.Y H:i" }}</span>
+                {% if attachment.resolved_at %}
+                <span><strong>Решение:</strong> {{ attachment.resolved_at|date:"d.m.Y H:i" }}</span>
+                {% else %}
+                <span><strong>Истекает:</strong> {{ attachment.expires_at|date:"d.m.Y H:i" }}</span>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% if sent_requests_page.paginator.num_pages > 1 %}
+    <div class="pagination-bar" aria-label="Навигация по отправленным запросам">
+        {% if sent_requests_page.has_previous %}
+        <a href="?{% if sent_requests_pagination_query %}{{ sent_requests_pagination_query }}&amp;{% endif %}requests_page={{ sent_requests_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+        {% endif %}
+
+        <span class="pagination-current">Страница {{ sent_requests_page.number }} из {{ sent_requests_page.paginator.num_pages }}</span>
+
+        {% if sent_requests_page.has_next %}
+        <a href="?{% if sent_requests_pagination_query %}{{ sent_requests_pagination_query }}&amp;{% endif %}requests_page={{ sent_requests_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p>Запросов на прикрепление пока нет.</p>
+    {% endif %}
+</section>
+{% endblock %}

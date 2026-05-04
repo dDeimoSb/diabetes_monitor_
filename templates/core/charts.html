@@ -1,0 +1,167 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}{{ browser_title }}{% endblock %}
+{% block dashboard_title %}{{ dashboard_title }}{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">{{ header_title }}</h1>
+    <p class="page-subtitle">{{ header_subtitle }}</p>
+    <p class="field-hint">Информация на графиках предназначена для самоконтроля и обсуждения с врачом.</p>
+</section>
+
+<section class="card">
+    <form method="get" class="filter-grid filter-grid-date-range">
+        <div class="field-block">
+            <label for="start_date">Дата начала</label>
+            <input type="date" name="start_date" id="start_date" value="{{ filters.start_date }}">
+        </div>
+        <div class="field-block">
+            <label for="end_date">Дата окончания</label>
+            <input type="date" name="end_date" id="end_date" value="{{ filters.end_date }}">
+        </div>
+        <div class="field-block filter-grid-span">
+            <h3>Параметры</h3>
+            <div class="checkbox-list">
+                {% for option in analytics.metric_options %}
+                <label class="checkbox-option">
+                    <input type="checkbox" name="metrics" value="{{ option.key }}" {% if option.selected %}checked{% endif %}>
+                    {{ option.label }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="form-actions filter-actions-bottom">
+            <button type="submit" class="btn btn-primary">Применить</button>
+            <a href="{{ reset_url }}" class="btn btn-outline">Сбросить</a>
+        </div>
+    </form>
+</section>
+
+<div class="attachment-list attachment-list-compact">
+    {% for series in analytics.chart_series %}
+    <section class="card monitoring-chart-card">
+        <h2 class="section-header">{{ series.label }}</h2>
+        {% if series.has_data %}
+        <div class="monitoring-chart-scroll">
+            <div class="monitoring-chart-wrap" data-chart-point-count="{{ series.points|length }}">
+                <canvas class="monitoring-chart" data-chart-index="{{ forloop.counter0 }}" role="img" aria-label="{{ series.label }}"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <p>Данных по этому показателю за выбранный период нет.</p>
+        {% endif %}
+    </section>
+    {% endfor %}
+</div>
+
+<section class="card">
+    <h2 class="section-header">{{ summary_table_title }}</h2>
+    {% if analytics.summary_rows %}
+    <div class="table-wrapper">
+        <table class="monitoring-summary-table">
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Тип</th>
+                    {% for label in analytics.selected_metric_labels %}
+                    <th>{{ label }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in summary_rows_page.object_list %}
+                <tr class="{% if row.is_critical %}table-row-highlight{% endif %}">
+                    <td>{{ row.entry.entry_datetime|date:"d.m.Y H:i" }}</td>
+                    <td>{{ row.entry.entry_type }}</td>
+                    {% for value in row.values %}
+                    <td>{{ value.value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if summary_rows_page.paginator.num_pages > 1 %}
+    <div class="pagination-summary">
+        Показано {{ summary_rows_page.start_index }}-{{ summary_rows_page.end_index }} из {{ summary_rows_page.paginator.count }}
+    </div>
+    <div class="pagination-bar" aria-label="Навигация по таблице показателей">
+        {% if summary_rows_page.has_previous %}
+        <a href="?{% if pagination_queries.summary %}{{ pagination_queries.summary }}&amp;{% endif %}summary_page={{ summary_rows_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+        {% endif %}
+
+        <span class="pagination-current">Страница {{ summary_rows_page.number }} из {{ summary_rows_page.paginator.num_pages }}</span>
+
+        {% if summary_rows_page.has_next %}
+        <a href="?{% if pagination_queries.summary %}{{ pagination_queries.summary }}&amp;{% endif %}summary_page={{ summary_rows_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p>{{ summary_empty_text }}</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2 class="section-header">Критические события</h2>
+    {% if critical_events %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Событие</th>
+                    <th>Статус</th>
+                    <th>Сообщение</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in critical_events %}
+                <tr>
+                    <td>{{ event.get_event_type_display }}</td>
+                    <td>{{ event.get_status_display }}</td>
+                    <td>{{ event.message }}</td>
+                    <td>{{ event.detected_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if critical_events_page and critical_events_page.paginator.num_pages > 1 %}
+    <div class="pagination-summary">
+        Показано {{ critical_events_page.start_index }}-{{ critical_events_page.end_index }} из {{ critical_events_page.paginator.count }}
+    </div>
+    <div class="pagination-bar" aria-label="Навигация по критическим событиям">
+        {% if critical_events_page.has_previous %}
+        <a href="?{% if pagination_queries.events %}{{ pagination_queries.events }}&amp;{% endif %}events_page={{ critical_events_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+        {% endif %}
+
+        <span class="pagination-current">Страница {{ critical_events_page.number }} из {{ critical_events_page.paginator.num_pages }}</span>
+
+        {% if critical_events_page.has_next %}
+        <a href="?{% if pagination_queries.events %}{{ pagination_queries.events }}&amp;{% endif %}events_page={{ critical_events_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p>{{ critical_events_empty_text }}</p>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+{{ analytics.chart_series|json_script:"monitoring-chart-series" }}
+<script src="{% static 'js/monitoring_charts.js' %}"></script>
+{% endblock %}

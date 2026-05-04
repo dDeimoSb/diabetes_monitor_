@@ -1,0 +1,117 @@
+{% extends 'base_doctor_app.html' %}
+
+{% block title %}Критические события{% endblock %}
+{% block dashboard_title %}Критические события{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Критические события</h1>
+    <p class="page-subtitle">Фильтрация по пациенту, статусу и периоду наблюдения.</p>
+</section>
+
+<section class="card">
+    <form method="get" class="filter-grid">
+        <div class="field-block">
+            <label for="patient">Пациент</label>
+            <select name="patient" id="patient">
+                <option value="">Все пациенты</option>
+                {% for patient in patients %}
+                <option value="{{ patient.patient_id }}" {% if filters.patient == patient.patient_id|stringformat:"s" %}selected{% endif %}>
+                    {{ patient.user.display_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field-block">
+            <label for="status">Статус</label>
+            <select name="status" id="status">
+                <option value="">Все статусы</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field-block">
+            <label for="start_date">Дата начала</label>
+            <input type="date" name="start_date" id="start_date" value="{{ filters.start_date }}">
+        </div>
+        <div class="field-block">
+            <label for="end_date">Дата окончания</label>
+            <input type="date" name="end_date" id="end_date" value="{{ filters.end_date }}">
+        </div>
+        <div class="form-actions filter-actions-bottom">
+            <button type="submit" class="btn btn-primary">Применить</button>
+            <a href="{% url 'doctor_critical_events' %}" class="btn btn-outline">Сбросить</a>
+        </div>
+    </form>
+</section>
+
+<section class="card">
+    {% if events %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Пациент</th>
+                    <th>Событие</th>
+                    <th>Статус</th>
+                    <th>Сообщение</th>
+                    <th>Дата</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>
+                        <a href="{% url 'doctor_patient_analytics' event.entry.patient.patient_id %}" class="text-link">
+                            {{ event.entry.patient.user.display_name }}
+                        </a>
+                    </td>
+                    <td>{{ event.get_event_type_display }}</td>
+                    <td>{{ event.get_status_display }}</td>
+                    <td>{{ event.message }}</td>
+                    <td>{{ event.detected_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <form method="post" class="table-actions table-actions-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="critical_event_id" value="{{ event.critical_event_id }}">
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <select name="status" aria-label="Статус события">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if event.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-outline">Обновить</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if events_page.paginator.num_pages > 1 %}
+    <div class="pagination-summary">
+        Показано {{ events_page.start_index }}-{{ events_page.end_index }} из {{ events_page.paginator.count }}
+    </div>
+    <div class="pagination-bar" aria-label="Навигация по критическим событиям">
+        {% if events_page.has_previous %}
+        <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ events_page.previous_page_number }}" class="btn btn-outline">Назад</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Назад</span>
+        {% endif %}
+
+        <span class="pagination-current">Страница {{ events_page.number }} из {{ events_page.paginator.num_pages }}</span>
+
+        {% if events_page.has_next %}
+        <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ events_page.next_page_number }}" class="btn btn-outline">Вперёд</a>
+        {% else %}
+        <span class="btn btn-outline btn-disabled" aria-disabled="true">Вперёд</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p>По текущим фильтрам критические события не найдены.</p>
+    {% endif %}
+</section>
+{% endblock %}

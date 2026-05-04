@@ -1,0 +1,92 @@
+{% extends base_template %}
+
+{% block title %}Тест риска предиабета{% endblock %}
+{% block dashboard_title %}Тест предиабета{% endblock %}
+
+{% block content %}
+<section class="card page-intro">
+    <p class="hero-eyebrow">
+        {% if request.user.is_authenticated and request.user.profile_role == "patient" %}
+            Оценка факторов риска
+        {% else %}
+            Анкета без авторизации
+        {% endif %}
+    </p>
+    <h1 class="page-title">Тест риска предиабета или сахарного диабета 2 типа</h1>
+    <p class="page-subtitle page-intro-subtitle">
+        Заполните короткую анкету, чтобы оценить факторы риска.
+        Результат не является диагнозом и не заменяет лабораторное обследование.
+        Оригинальное название: The Finnish Diabetes Risk Score (FINDRISC).
+    </p>
+</section>
+
+<div class="risk-layout">
+    <section class="card form-panel">
+        <div class="form-panel-header">
+            <h2>Вопросы анкеты</h2>
+            <p>Ответьте на все вопросы.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="form-errors">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="public-form-grid">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="field-block">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="field-hint-under-box">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Рассчитать результат</button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="card result-panel">
+        {% if result %}
+            <span class="result-badge {{ result.level_class }}">{{ result.category }}</span>
+            <h2>Баллы: {{ result.score }}</h2>
+            <p class="result-band">{{ result.band }}</p>
+            <p>{{ result.summary }}</p>
+
+            <div class="metric-grid-single">
+                <div class="metric-card">
+                    <span class="metric-label">ИМТ</span>
+                    <strong>{{ result.bmi }}</strong>
+                    <p>{{ result.bmi_label }}</p>
+                </div>
+            </div>
+
+            <h3>Что делать дальше?</h3>
+            <ul class="content-list">
+                {% for item in result.recommendations %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h2>Снижение риска возникновения предиабета или сахарного диабета 2 типа</h2>
+            <ul class="content-list">
+                <li>Вы не можете повлиять на свой возраст или наследственную предрасположенность к предиабету и сахарному диабету, но Вы можете изменить Ваш образ жизни и снизить тем самым риск развития этих заболеваний.</li>
+                <li>Вы можете снизить массу тела, стать более активным физически и потреблять более здоровую пищу. Эти изменения образа жизни особенно необходимы по мере увеличения возраста или при наличии у Вас наследственной отягощенности по сахарному диабету.</li>
+                <li>Здоровый образ жизни необходим и в том случае, если у Вас уже диагностировали предиабет или сахарный диабет 2 типа.</li>
+                <li>Для снижения уровня глюкозы (сахара) в крови, массы тела и уменьшения неблагоприятного прогноза заболевания может понадобиться лекарственная терапия.</li>
+            </ul>
+        {% endif %}
+        <p class="field-hint">Если вас беспокоят жажда, слабость, частое мочеиспускание, необъяснимое снижение веса или повторяющиеся повышенные показатели глюкозы, обратитесь к врачу вне зависимости от результата теста.</p>
+    </aside>
+</div>
+{% endblock %}
