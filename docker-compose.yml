@@ -8,7 +8,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      test: [ "CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -17,9 +17,7 @@ services:
     image: diabetes-monitor-web:local
     build: .
     command: >
-      sh -c "python manage.py collectstatic --noinput
-      && python manage.py migrate
-      && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"
+      sh -c "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-docker-local-development-only}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
@@ -27,6 +25,7 @@ services:
       DJANGO_SECURE_SSL_REDIRECT: ${DJANGO_SECURE_SSL_REDIRECT:-False}
       DJANGO_SESSION_COOKIE_SECURE: ${DJANGO_SESSION_COOKIE_SECURE:-False}
       DJANGO_CSRF_COOKIE_SECURE: ${DJANGO_CSRF_COOKIE_SECURE:-False}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-}
       DJANGO_DB_ENGINE: postgresql
       DJANGO_DB_NAME: ${DJANGO_DB_NAME:-diabetes_monitor_db}
       DJANGO_DB_USER: ${DJANGO_DB_USER:-postgres}
