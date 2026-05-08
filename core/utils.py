@@ -26,6 +26,7 @@ def get_dashboard_url(user):
     return reverse("home")
 
 
+# Безопасный редирект
 def get_safe_redirect_target(request, target, fallback_url):
     if target and url_has_allowed_host_and_scheme(
         target,
@@ -45,6 +46,7 @@ def format_value(value):
     return str(value).replace(".", ",")
 
 
+# Описание записи
 def describe_entry(entry):
     parts = []
 
@@ -119,6 +121,7 @@ def serialize_entry(entry):
     }
 
 
+# Данные для графиков
 ANALYTICS_METRICS = {
     "glucose": {
         "label": "Глюкоза",

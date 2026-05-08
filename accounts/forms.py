@@ -122,6 +122,7 @@ class RegistrationForm(forms.Form):
         ),
     )
 
+    # Проверка email
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if not self.EMAIL_PATTERN.fullmatch(email):
@@ -171,6 +172,7 @@ class RegistrationForm(forms.Form):
 
         return cleaned_data
 
+    # Создание пациента
     def save(self):
         with transaction.atomic():
             user = User.objects.create_user(

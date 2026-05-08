@@ -13,6 +13,7 @@ from core.utils import get_user_role, serialize_entry
 
 
 EXPORT_HEADERS = ("Дата и время", "Пациент", "Тип записи", "Детали", "Комментарий")
+# Опасные префиксы таблиц
 FORMULA_PREFIXES = ("=", "+", "-", "@")
 
 
@@ -92,6 +93,7 @@ def build_export_rows(entries):
     return rows
 
 
+# Защита ячеек
 def _safe_spreadsheet_value(value):
     value = "" if value is None else str(value)
     stripped = value.lstrip()

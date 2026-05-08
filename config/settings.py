@@ -52,7 +52,7 @@ def _env_list(name, default=None):
         return list(default or [])
     return [item.strip() for item in value.split(",") if item.strip()]
 
-
+# Загрузка .env
 _load_dotenv()
 
 
@@ -63,6 +63,7 @@ LOCAL_DEVELOPMENT_SECRET_KEY = (
     "local-development-only-4c8e78f9c7d941e0a558c0b67c4dd5b8"
 )
 
+# Основные настройки окружения
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", LOCAL_DEVELOPMENT_SECRET_KEY)
 DEBUG = _env_bool("DJANGO_DEBUG", default=True)
 

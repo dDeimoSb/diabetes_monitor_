@@ -39,6 +39,7 @@ DOCTOR_PATIENT_ANALYTICS_MAX_EVENTS = 100
 DOCTOR_CRITICAL_EVENTS_PER_PAGE = 25
 
 
+# Доступ врача
 def _require_doctor(request):
     if getattr(request.user, "profile_role", "") != "doctor":
         messages.warning(request, "Раздел доступен только врачу.")
@@ -350,6 +351,7 @@ def critical_events(request):
         return redirect("role_redirect")
 
     if request.method == "POST":
+        # Обновление статуса события
         redirect_target = get_safe_redirect_target(
             request,
             request.POST.get("next"),

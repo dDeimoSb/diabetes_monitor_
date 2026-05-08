@@ -48,6 +48,7 @@ class PatientAttachmentSearchForm(forms.Form):
         )
         return queryset
 
+    # Статус прикрепления
     def get_results(self, doctor_profile, patients=None):
         if patients is None:
             patients = self.get_patient_queryset()[:50]
@@ -124,6 +125,7 @@ class CreateAttachmentRequestForm(forms.Form):
         self.patient = patient
         return cleaned_data
 
+    # Создание запроса
     def save(self):
         if self.patient is None:
             raise ValueError("CreateAttachmentRequestForm.save() called before validation.")

@@ -15,6 +15,7 @@ def login_view(request):
     form = LoginForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
+        # Вход по email
         email = form.cleaned_data["email"].strip().lower()
         password = form.cleaned_data["password"]
 
@@ -50,6 +51,7 @@ def register_view(request):
     form = RegistrationForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
+        # Регистрация пациента
         try:
             user = form.save()
         except DatabaseError:

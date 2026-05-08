@@ -204,6 +204,7 @@ class PatientDoctorAttachments(models.Model):
     def is_pending(self):
         return self.status == AttachmentRequestStatus.PENDING
 
+    # CSS-статус
     @property
     def status_badge_class(self):
         return {
@@ -214,6 +215,7 @@ class PatientDoctorAttachments(models.Model):
             AttachmentRequestStatus.EXPIRED: "status-neutral",
         }.get(self.status, "status-neutral")
 
+    # Просрочка запросов
     @classmethod
     def expire_pending(cls):
         now = timezone.now()

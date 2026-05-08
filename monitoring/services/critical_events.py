@@ -52,6 +52,7 @@ def _confirmed_doctor_users(patient):
     return [attachment.doctor.user for attachment in attachments]
 
 
+# Правила критических событий
 def _event_specs_for_entry(entry):
     specs = []
 
@@ -157,6 +158,7 @@ def _event_specs_for_entry(entry):
     return specs
 
 
+# Уведомления участникам
 def _create_notifications(event, doctor_users):
     recipients = [
         (

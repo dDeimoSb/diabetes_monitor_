@@ -47,6 +47,7 @@ ENTRY_TYPE_VALUES = {
 AVAILABLE_ENTRY_TYPES = set(ENTRY_TYPE_VALUES.values())
 
 
+# Доступ пациента
 def _require_patient(request):
     if getattr(request.user, "profile_role", "") != "patient":
         messages.warning(request, "Раздел доступен только пациенту.")
@@ -248,6 +249,7 @@ def add_entry(request):
 
     if request.method == "POST" and form.is_valid():
         entry = form.save(patient=patient, user=request.user)
+        # Синхронизация предупреждений
         sync_critical_events_for_entry(entry)
         messages.success(request, "Запись самоконтроля добавлена.")
         return redirect(f"{reverse('patient_history')}?entry_id={entry.entry_id}")
@@ -307,6 +309,7 @@ def delete_entry(request, entry_id):
 
     entry = get_object_or_404(_entry_queryset(patient), entry_id=entry_id)
     if request.method == "POST":
+        # Очистка предупреждений
         delete_critical_events_for_entry(entry)
         entry.delete()
         patient.updated_at = timezone.now()

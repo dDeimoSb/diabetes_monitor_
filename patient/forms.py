@@ -267,6 +267,7 @@ class MonitoringEntryForm(forms.Form):
                 timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
             )
 
+    # Начальные данные записи
     @classmethod
     def get_initial_from_entry(cls, entry):
         entry_datetime = entry.entry_datetime
@@ -344,6 +345,7 @@ class MonitoringEntryForm(forms.Form):
 
         return initial
 
+    # Правила по типам записей
     def clean(self):
         cleaned_data = super().clean()
         entry_type = cleaned_data.get("entry_type")
@@ -448,6 +450,7 @@ class MonitoringEntryForm(forms.Form):
                 pulse_bpm=self.cleaned_data.get("pulse_bpm"),
             )
 
+    # Сохранение записи
     def save(self, *, patient, user, entry=None):
         if not hasattr(self, "cleaned_data"):
             raise ValueError("MonitoringEntryForm.save() called before validation.")
