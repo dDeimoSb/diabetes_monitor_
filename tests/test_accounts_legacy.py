@@ -2,9 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.admin_forms import AdminUserCreationForm
 from monitoring.models import Doctors, Patients
-
-from .admin_forms import AdminUserCreationForm
 
 
 User = get_user_model()
